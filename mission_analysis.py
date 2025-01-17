@@ -115,9 +115,7 @@ class MissionAnalyzer():
         # alpha_func : function to calculate AOA from given CL value
         self.CL_func = interp1d(self.analResult.alpha_list, 
 
-                                (self.analResult.Lh-self.analResult.Lw) 
-                                / self.analResult.Lh * np.array(self.analResult.CL), 
-
+                                float((self.analResult.Lh-self.analResult.Lw) / self.analResult.Lh) * np.array(self.analResult.CL), 
                                 kind = 'linear', 
                                 bounds_error = False, fill_value = "extrapolate")
 
@@ -166,15 +164,15 @@ class MissionAnalyzer():
     def calculate_level_alpha(self,T,v):
         #  Function that calculates the AOA required for level flight using the velocity vector and thrust
         speed = np.linalg.norm(v)
-        def equation(alpha):
+        def equation(alpha:float):
             CL = float(self.CL_func(alpha))
-            L = self.calculateLift(CL,speed)
-            return L + T * math.sin(math.radians(alpha)) - self.weight
+            L,_ = self.calculateLift(CL,float(speed))
+            return float(L + T * math.sin(math.radians(alpha)) - self.weight)
 
         alpha_solution = fsolve(equation, 5, xtol=1e-8, maxfev=1000)
         return alpha_solution[0]
     
-    def calculateLift(self, CL, speed=-1):
+    def calculateLift(self, CL, speed:float=-1):
         if(speed == -1): speed = np.linalg.norm(self.state.velocity)
         L = 0.5 * rho * np.linalg.norm(self.state.velocity)**2 * self.analResult.Sref * CL
         return L, L/self.weight 
@@ -332,14 +330,13 @@ class MissionAnalyzer():
             else:
                 CL = float(self.CL_func(alpha_w_deg))
 
-            L, load_factor = self.calculateLift(CL) 
-            load_factor_list.append(load_factor)
     
             self.state.acceleration = RK4_step(self.state.velocity,self.dt,
                          lambda v: calculate_acceleration_climb(v, self.aircraft.m_total,self.weight,
+                                                                self.analResult.Sref,
                                                                 self.CL_func,self.CD_func,
                                                                 self.analResult.CL_flap_max,self.analResult.CD_flap_max,
-                                                                alpha_w_deg,gamma_rad,self.state.position[2],
+                                                                alpha_w_deg,gamma_rad,
                                                                 self.T_climb,
                                                                 not self.isBelowFlapTransition()
                                                                 ))
@@ -654,7 +651,8 @@ def calculate_acceleration_climb(v, m_total, Weight,
     # gamma rad : climb angle
     # over_flap_transition: checks if plane is over the flap transition (boolean)
     # Function that calculates the acceleration during climb
-
+    CL=0
+    CD=0
     speed = np.linalg.norm(v)
     if (over_flap_transition):
         CL = float(CL_func(alpha_deg))

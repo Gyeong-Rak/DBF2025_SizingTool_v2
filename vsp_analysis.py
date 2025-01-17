@@ -1,7 +1,11 @@
 import openvsp as vsp
+import csv
 import numpy as np
+import numpy.strings
+import json
 from typing import List
 from dataclasses import asdict, make_dataclass
+import ast
 import typing
 import os 
 import os.path
@@ -451,6 +455,7 @@ class VSPAnalyzer:
 
 
 def writeAnalysisResults(anaResults: AircraftAnalysisResults, csvPath:str = "data/test.csv"):
+
     if not os.path.isfile(csvPath):
         df = pd.json_normalize(asdict(anaResults))
         df['hash'] = hash(anaResults.aircraft)
@@ -458,14 +463,31 @@ def writeAnalysisResults(anaResults: AircraftAnalysisResults, csvPath:str = "dat
         new_df = pd.json_normalize(asdict(anaResults))
 
         new_df['hash'] = hash(anaResults.aircraft)
-        df = pd.read_csv(csvPath, sep=',', encoding='utf-8')
+        df = pd.read_csv(csvPath, sep='|', encoding='utf-8')
         df= pd.concat([df,new_df]).drop_duplicates(["hash"],keep='last')
-    
 
+
+    def convert_cell(x):
+        if isinstance(x, np.ndarray):
+            return f"{json.dumps(x.tolist())}"
+        return x
+
+    df_copy = df.copy()
+    for col in df_copy.columns:
+        df_copy[col] = df_copy[col].apply(convert_cell)
+    
     # Save the updated DataFrame back to CSV
-    df.to_csv(csvPath, index=False)
+    df_copy.to_csv(csvPath, sep='|', encoding='utf-8', index=False, quoting=csv.QUOTE_NONE)
 
 def loadAnalysisResults(hashValue:int, csvPath:str = "data/test.csv")-> AircraftAnalysisResults:
-    df = pd.read_csv(csvPath, sep=',', encoding='utf-8')
-    analResult = df.loc[df['hash']==hashValue].to_dict('records')[0]
-    return AircraftAnalysisResults.fromDict(analResult)
+    df = pd.read_csv(csvPath, sep='|', encoding='utf-8')
+    df = df.loc[df['hash']==hashValue]
+   
+    for col in df.columns:
+       df[col] = df[col].apply(lambda x: 
+                               np.array(ast.literal_eval(x),float) if isinstance(x, str) and x.startswith('[')
+                               else x)
+    df.pop('hash')
+
+    analysisResult=df.to_dict(orient='records')[0]
+    return AircraftAnalysisResults.fromDict(analysisResult)

@@ -9,21 +9,23 @@ def main():
             m_x1=1,x1_flight_time=2,
             max_battery_capacity=3,Thrust_max=4,
             min_battery_voltage=3, propulsion_efficiency=0.5,
-            score_weight_ratio=1
-            )
+          score_weight_ratio=1
+          )
 
-    # missionParam = MissionParameters(max_battery_capacity=2250,
-    #                                  throttle_takeoff=0.9, throttle_climb=0.9,
-    #                                  throttle_level=0.6, throttle_turn=0.55,
-    #                                  max_climb_angle=40, max_speed=40, max_load_factor=4.0,
-    #                                  h_flap_transition=5)
+    missionParam = MissionParameters(max_battery_capacity=2250,
+                                     throttle_takeoff=0.9, throttle_climb=0.9,
+                                     throttle_level=0.6, throttle_turn=0.55,
+                                     max_climb_angle=40, max_speed=40, max_load_factor=4.0,
+                                     h_flap_transition=5)
 
-    # a=loadAnalysisResults(2270606438082248747)
-
-    # missionAnalyzer = MissionAnalyzer(a,missionParam,presetValues)
-    # 
-    # print(missionAnalyzer.run_mission2())
-
+    a=loadAnalysisResults(6010330674452735345)
+    
+    missionAnalyzer = MissionAnalyzer(a,missionParam,presetValues)
+    
+    print(missionAnalyzer.run_mission2())
+    print(missionAnalyzer.stateLog.head())
+    
+    return
    
     aircraft = Aircraft(
             m_total=50,m_fuselage=10,

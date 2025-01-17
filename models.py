@@ -112,7 +112,7 @@ class AircraftAnalysisResults:
     # Aerodynamic properties
     Sref: float
 
-    alpha_list: np.ndarray
+    alpha_list: List[float]
 
     AOA_stall: float # Must be set manually!
     AOA_takeoff_max: float # Must be set manually!
@@ -122,9 +122,9 @@ class AircraftAnalysisResults:
     CL: np.ndarray
     CL_max: float
 
-    CD_wing: np.ndarray
-    CD_fuse: np.ndarray ## (TODO: integrate CFD)
-    CD_total: np.ndarray
+    CD_wing: List[float]
+    CD_fuse: List[float]## (TODO: integrate CFD)
+    CD_total: List[float]
     
     # Flaps
     CL_flap_max: float
@@ -135,7 +135,6 @@ class AircraftAnalysisResults:
 
     @classmethod
     def fromDict(cls, datadict):
-        datadict.pop('hash')
         aircraft = Aircraft(**{k.replace('aircraft.',''):v for k,v in datadict.items() if  ('aircraft.' in k)})
         datadict = {k:v for k,v in datadict.items() if not ('aircraft.' in k)}
         return  cls(**datadict,aircraft=aircraft)
