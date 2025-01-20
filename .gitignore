@@ -1,6 +1,7 @@
 __pycache__/
-out/
+out/*
 runContainer.sh
 custom_dir/
 
 .vsp*
+*.csv
